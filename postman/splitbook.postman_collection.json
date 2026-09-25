@@ -1,0 +1,632 @@
+{
+  "info": {
+    "name": "SplitBook API",
+    "description": "The demo flow, in order. Run `pnpm seed` first, then run the folders top to bottom: login saves the token, creating a group saves its id, and every later request uses them.\n\nAll amounts are integer kobo (₦1 = 100 kobo).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "myId",
+      "value": ""
+    },
+    {
+      "key": "groupId",
+      "value": ""
+    },
+    {
+      "key": "memberId",
+      "value": ""
+    },
+    {
+      "key": "expenseId",
+      "value": ""
+    },
+    {
+      "key": "settlementId",
+      "value": ""
+    },
+    {
+      "key": "otherSessionId",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('myId', body.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ngozi Okafor\",\n  \"email\": \"ngozi@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Ada, seeded)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('myId', body.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ada@splitbook.test\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Update my name",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/users/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ada O.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Search user by email (saves memberId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) pm.collectionVariables.set('memberId', body.data.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/search?email=tolu@splitbook.test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "tolu@splitbook.test"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard summary",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/me/summary"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "item": [
+        {
+          "name": "Create group (saves groupId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) pm.collectionVariables.set('groupId', body.data.group.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lagos trip\",\n  \"description\": \"Weekend in Lekki\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My groups",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/groups?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Group detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}"
+          }
+        },
+        {
+          "name": "Rename group",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lagos trip 2026\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add member by email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/members",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tolu@splitbook.test\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove member (409 while they owe)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/groups/{{groupId}}/members/{{memberId}}"
+          }
+        },
+        {
+          "name": "Delete group (409 until settled)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/groups/{{groupId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Record expense — equal (saves expenseId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) pm.collectionVariables.set('expenseId', body.data.expense.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Beach house\",\n  \"amount\": 10000,\n  \"category\": \"rent\",\n  \"splitType\": \"equal\",\n  \"participants\": [\"{{myId}}\", \"{{memberId}}\"],\n  \"date\": \"2026-09-20\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Record expense — exact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Dinner at Kilimanjaro\",\n  \"amount\": 1500000,\n  \"category\": \"food\",\n  \"paidBy\": \"{{myId}}\",\n  \"splitType\": \"exact\",\n  \"shares\": [\n    { \"user\": \"{{myId}}\", \"amount\": 500000 },\n    { \"user\": \"{{memberId}}\", \"amount\": 1000000 }\n  ],\n  \"date\": \"2026-09-20\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Record expense — percentage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Fuel\",\n  \"amount\": 2000000,\n  \"category\": \"transport\",\n  \"splitType\": \"percentage\",\n  \"shares\": [\n    { \"user\": \"{{myId}}\", \"percent\": 40 },\n    { \"user\": \"{{memberId}}\", \"percent\": 60 }\n  ],\n  \"date\": \"2026-09-21\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Record expense — shares don't sum (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Broken\",\n  \"amount\": 1500000,\n  \"splitType\": \"exact\",\n  \"shares\": [{ \"user\": \"{{myId}}\", \"amount\": 100 }],\n  \"date\": \"2026-09-20\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List expenses (search / filter)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}/expenses?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "{{groupId}}",
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "dinner",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "food",
+                  "disabled": true
+                },
+                {
+                  "key": "paidBy",
+                  "value": "{{myId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "from",
+                  "value": "2026-09-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "2026-09-30",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Expense detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses/{{expenseId}}"
+          }
+        },
+        {
+          "name": "Edit expense (amount only — re-splits)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses/{{expenseId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 12000\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete expense",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses/{{expenseId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balances & settle up",
+      "item": [
+        {
+          "name": "Balances",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}/balances"
+          }
+        },
+        {
+          "name": "Settle-up plan",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}/settle-up"
+          }
+        },
+        {
+          "name": "Record settlement (saves settlementId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) pm.collectionVariables.set('settlementId', body.data.settlement.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/settlements",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{memberId}}\",\n  \"to\": \"{{myId}}\",\n  \"amount\": 5000,\n  \"note\": \"Bank transfer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List settlements",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}/settlements"
+          }
+        },
+        {
+          "name": "Undo settlement",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/groups/{{groupId}}/settlements/{{settlementId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions & logout",
+      "description": "Last on purpose: logout ends the collection's token. Run Login again to continue afterwards.",
+      "item": [
+        {
+          "name": "Active sessions (saves otherSessionId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const other = (body.data?.sessions ?? []).find((s) => !s.current);",
+                  "if (other) pm.collectionVariables.set('otherSessionId', other.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/sessions"
+          }
+        },
+        {
+          "name": "Log out another device (needs a second login)",
+          "request": {
+            "method": "DELETE",
+            "description": "Log in a second time (e.g. from another Postman tab) first, then re-run Active sessions so otherSessionId is set.",
+            "url": "{{baseUrl}}/auth/sessions/{{otherSessionId}}"
+          }
+        },
+        {
+          "name": "Change password (logs out other devices)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/change-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"password456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change password back (keeps the seeded login working)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/change-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password456\",\n  \"newPassword\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout (204)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout"
+          }
+        },
+        {
+          "name": "Me after logout (401)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me"
+          }
+        }
+      ]
+    }
+  ]
+}
