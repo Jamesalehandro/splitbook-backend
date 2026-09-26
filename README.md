@@ -279,19 +279,3 @@ The PRD's must-haves, and where they are:
   `NODE_ENV=production`, `TRUST_PROXY=1` (Render adds one proxy), and `CLIENT_URL` set to the
   Vercel URL. Several origins can be comma-separated.
 - **Atlas:** allow Render's outbound IPs (or `0.0.0.0/0` for the demo).
-- **First deploy with sessions:** tokens issued before sessions existed have no session row, so
-  they are refused. Every user is logged out once and has to log in again. The `sessions`
-  collection and its indexes are created automatically on startup.
-
-## Deliberate differences from the PRD
-
-- **TypeScript + Vitest instead of JavaScript + Jest**, to match the team's existing backend.
-  Vitest's `describe/it/expect` API is Jest's, so the tests read the same.
-- **Hand-written OpenAPI** (`src/docs/openapi.ts`) instead of swagger-jsdoc comments. The docs
-  live in one file instead of being scattered across route files.
-- **No `$text` index on description.** Text search only matches whole words, so "din" would not
-  find "Dinner". A case-insensitive regex, already narrowed to one group by `{ group, date }`, does.
-- **`express-mongo-sanitize` replaced** by a small `SanitizeMiddleware`. That package reassigns
-  `req.query`, which is read-only in Express 5, so it throws on every request.
-- **Currency is `NGN` only** in validation, per the "one currency, NGN default" rule. It is one
-  enum to widen later.
