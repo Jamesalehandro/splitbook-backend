@@ -277,5 +277,6 @@ The PRD's must-haves, and where they are:
 - **Health check path** `/api/v1/health`.
 - **Environment:** `MONGO_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN=1d`, `SESSION_IDLE_MINUTES=60`,
   `NODE_ENV=production`, `TRUST_PROXY=1` (Render adds one proxy), and `CLIENT_URL` set to the
-  Vercel URL. Several origins can be comma-separated.
+  Netlify URL (`https://group32expense.netlify.app`, origin only, no path or trailing slash).
+  Several origins can be comma-separated.
 - **Atlas:** allow Render's outbound IPs (or `0.0.0.0/0` for the demo).
