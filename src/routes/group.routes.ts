@@ -1,7 +1,15 @@
 import { Router } from 'express';
 
-import { BalanceController } from '../controllers/balance.controller';
-import { GroupController } from '../controllers/group.controller';
+import { listBalances, settleUp } from '../controllers/balance.controller';
+import {
+  addMember,
+  create,
+  getOne,
+  list,
+  remove,
+  removeMember,
+  update,
+} from '../controllers/group.controller';
 import { AuthMiddleware } from '../middleware/authenticate';
 import { GroupAccessMiddleware } from '../middleware/groupAccess';
 import { ValidationMiddleware } from '../middleware/validate';
@@ -17,13 +25,13 @@ router.use(AuthMiddleware.authenticate);
 router.post(
   '/',
   ValidationMiddleware.validate({ schema: GroupSchema.create }),
-  GroupController.create,
+  create,
 );
 
 router.get(
   '/',
   ValidationMiddleware.validate({ schema: GroupSchema.list, part: 'query' }),
-  GroupController.list,
+  list,
 );
 
 const inGroup = [
@@ -31,21 +39,21 @@ const inGroup = [
   GroupAccessMiddleware.requireMember,
 ];
 
-router.get('/:groupId', ...inGroup, GroupController.getOne);
+router.get('/:groupId', ...inGroup, getOne);
 
 router.patch(
   '/:groupId',
   ...inGroup,
   GroupAccessMiddleware.requireAdmin,
   ValidationMiddleware.validate({ schema: GroupSchema.update }),
-  GroupController.update,
+  update,
 );
 
 router.delete(
   '/:groupId',
   ...inGroup,
   GroupAccessMiddleware.requireAdmin,
-  GroupController.remove,
+  remove,
 );
 
 router.post(
@@ -53,7 +61,7 @@ router.post(
   ...inGroup,
   GroupAccessMiddleware.requireAdmin,
   ValidationMiddleware.validate({ schema: GroupSchema.addMember }),
-  GroupController.addMember,
+  addMember,
 );
 
 router.delete(
@@ -63,11 +71,11 @@ router.delete(
     part: 'params',
   }),
   GroupAccessMiddleware.requireMember,
-  GroupController.removeMember,
+  removeMember,
 );
 
-router.get('/:groupId/balances', ...inGroup, BalanceController.list);
-router.get('/:groupId/settle-up', ...inGroup, BalanceController.settleUp);
+router.get('/:groupId/balances', ...inGroup, listBalances);
+router.get('/:groupId/settle-up', ...inGroup, settleUp);
 
 router.use('/:groupId/expenses', ...inGroup, expenseRoutes);
 router.use('/:groupId/settlements', ...inGroup, settlementRoutes);

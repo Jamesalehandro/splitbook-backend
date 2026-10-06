@@ -1,6 +1,12 @@
 import { Router } from 'express';
 
-import { ExpenseController } from '../controllers/expense.controller';
+import {
+  create,
+  getOne,
+  list,
+  remove,
+  update,
+} from '../controllers/expense.controller';
 import { ValidationMiddleware } from '../middleware/validate';
 import { ExpenseSchema } from '../validators/expense.validator';
 
@@ -14,24 +20,24 @@ const expenseParams = ValidationMiddleware.validate({
 router.post(
   '/',
   ValidationMiddleware.validate({ schema: ExpenseSchema.create }),
-  ExpenseController.create,
+  create,
 );
 
 router.get(
   '/',
   ValidationMiddleware.validate({ schema: ExpenseSchema.list, part: 'query' }),
-  ExpenseController.list,
+  list,
 );
 
-router.get('/:expenseId', expenseParams, ExpenseController.getOne);
+router.get('/:expenseId', expenseParams, getOne);
 
 router.patch(
   '/:expenseId',
   expenseParams,
   ValidationMiddleware.validate({ schema: ExpenseSchema.update }),
-  ExpenseController.update,
+  update,
 );
 
-router.delete('/:expenseId', expenseParams, ExpenseController.remove);
+router.delete('/:expenseId', expenseParams, remove);
 
 export default router;

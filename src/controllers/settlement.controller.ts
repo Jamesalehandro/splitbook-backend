@@ -9,32 +9,30 @@ import type {
   SettlementParams,
 } from '../validators/settlement.validator';
 
-export class SettlementController {
-  /** POST /api/v1/groups/:groupId/settlements */
-  static create: RequestHandler = async (req, res) => {
-    const user = AuthMiddleware.requireUser(req);
-    const { group } = GroupAccessMiddleware.requireGroup(req);
+/** POST /api/v1/groups/:groupId/settlements */
+export const create: RequestHandler = async (req, res) => {
+  const user = AuthMiddleware.requireUser(req);
+  const { group } = GroupAccessMiddleware.requireGroup(req);
 
-    const settlement = await SettlementService.create({ group, user, input: req.body });
-    ResponseUtils.created({ res, data: { settlement }, message: 'Payment recorded successfully' });
-  };
+  const settlement = await SettlementService.create({ group, user, input: req.body });
+  ResponseUtils.created({ res, data: { settlement }, message: 'Payment recorded successfully' });
+};
 
-  /** GET /api/v1/groups/:groupId/settlements */
-  static list: RequestHandler = async (req, res) => {
-    const { group } = GroupAccessMiddleware.requireGroup(req);
-    const query = req.query as unknown as ListSettlementsInput;
+/** GET /api/v1/groups/:groupId/settlements */
+export const list: RequestHandler = async (req, res) => {
+  const { group } = GroupAccessMiddleware.requireGroup(req);
+  const query = req.query as unknown as ListSettlementsInput;
 
-    const { items, meta } = await SettlementService.list({ group, query });
-    ResponseUtils.success({ res, data: items, meta });
-  };
+  const { items, meta } = await SettlementService.list({ group, query });
+  ResponseUtils.success({ res, data: items, meta });
+};
 
-  /** DELETE /api/v1/groups/:groupId/settlements/:settlementId */
-  static remove: RequestHandler = async (req, res) => {
-    const user = AuthMiddleware.requireUser(req);
-    const { group, membership } = GroupAccessMiddleware.requireGroup(req);
-    const { settlementId } = req.params as unknown as SettlementParams;
+/** DELETE /api/v1/groups/:groupId/settlements/:settlementId */
+export const remove: RequestHandler = async (req, res) => {
+  const user = AuthMiddleware.requireUser(req);
+  const { group, membership } = GroupAccessMiddleware.requireGroup(req);
+  const { settlementId } = req.params as unknown as SettlementParams;
 
-    await SettlementService.remove({ group, user, membership, settlementId });
-    ResponseUtils.success({ res, message: 'Payment undone successfully' });
-  };
-}
+  await SettlementService.remove({ group, user, membership, settlementId });
+  ResponseUtils.success({ res, message: 'Payment undone successfully' });
+};

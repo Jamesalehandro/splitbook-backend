@@ -1,6 +1,14 @@
 import { Router } from 'express';
 
-import { AuthController } from '../controllers/auth.controller';
+import {
+  changePassword,
+  listSessions,
+  login,
+  logout,
+  me,
+  register,
+  revokeSession,
+} from '../controllers/auth.controller';
 import { AuthMiddleware } from '../middleware/authenticate';
 import { RateLimitMiddleware } from '../middleware/rateLimit';
 import { ValidationMiddleware } from '../middleware/validate';
@@ -12,23 +20,23 @@ router.post(
   '/register',
   RateLimitMiddleware.auth,
   ValidationMiddleware.validate({ schema: AuthSchema.register }),
-  AuthController.register,
+  register,
 );
 
 router.post(
   '/login',
   RateLimitMiddleware.auth,
   ValidationMiddleware.validate({ schema: AuthSchema.login }),
-  AuthController.login,
+  login,
 );
 
-router.post('/logout', AuthMiddleware.authenticate, AuthController.logout);
-router.get('/me', AuthMiddleware.authenticate, AuthController.me);
+router.post('/logout', AuthMiddleware.authenticate, logout);
+router.get('/me', AuthMiddleware.authenticate, me);
 
 router.get(
   '/sessions',
   AuthMiddleware.authenticate,
-  AuthController.listSessions,
+  listSessions,
 );
 router.delete(
   '/sessions/:sessionId',
@@ -37,7 +45,7 @@ router.delete(
     schema: AuthSchema.sessionParams,
     part: 'params',
   }),
-  AuthController.revokeSession,
+  revokeSession,
 );
 
 router.post(
@@ -45,7 +53,7 @@ router.post(
   RateLimitMiddleware.auth,
   AuthMiddleware.authenticate,
   ValidationMiddleware.validate({ schema: AuthSchema.changePassword }),
-  AuthController.changePassword,
+  changePassword,
 );
 
 export default router;

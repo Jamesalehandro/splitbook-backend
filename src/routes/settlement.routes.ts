@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { SettlementController } from '../controllers/settlement.controller';
+import { create, list, remove } from '../controllers/settlement.controller';
 import { ValidationMiddleware } from '../middleware/validate';
 import { SettlementSchema } from '../validators/settlement.validator';
 
@@ -10,19 +10,19 @@ const router = Router({ mergeParams: true });
 router.post(
   '/',
   ValidationMiddleware.validate({ schema: SettlementSchema.create }),
-  SettlementController.create,
+  create,
 );
 
 router.get(
   '/',
   ValidationMiddleware.validate({ schema: SettlementSchema.list, part: 'query' }),
-  SettlementController.list,
+  list,
 );
 
 router.delete(
   '/:settlementId',
   ValidationMiddleware.validate({ schema: SettlementSchema.params, part: 'params' }),
-  SettlementController.remove,
+  remove,
 );
 
 export default router;

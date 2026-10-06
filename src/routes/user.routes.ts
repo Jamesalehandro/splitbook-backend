@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { UserController } from '../controllers/user.controller';
+import { search, summary, updateMe } from '../controllers/user.controller';
 import { AuthMiddleware } from '../middleware/authenticate';
 import { ValidationMiddleware } from '../middleware/validate';
 import { UserSchema } from '../validators/user.validator';
@@ -12,15 +12,15 @@ router.use(AuthMiddleware.authenticate);
 router.patch(
   '/me',
   ValidationMiddleware.validate({ schema: UserSchema.updateMe }),
-  UserController.updateMe,
+  updateMe,
 );
 
-router.get('/me/summary', UserController.summary);
+router.get('/me/summary', summary);
 
 router.get(
   '/search',
   ValidationMiddleware.validate({ schema: UserSchema.search, part: 'query' }),
-  UserController.search,
+  search,
 );
 
 export default router;
