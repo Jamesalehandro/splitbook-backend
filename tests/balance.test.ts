@@ -6,7 +6,7 @@ import {
   type LedgerSettlement,
 } from '../src/services/balance.service';
 import { SplitService } from '../src/services/split.service';
-import { MoneyUtils } from '../src/utils/money';
+import { sumKobo } from '../src/utils/money';
 
 const PEOPLE = ['ada', 'tolu', 'chidi', 'bola', 'emeka', 'funmi'];
 
@@ -109,7 +109,7 @@ describe('BalanceService.computeNetBalances', () => {
   it('always sums to 0 across the group (300 random groups)', () => {
     for (let seed = 1; seed <= 300; seed += 1) {
       const nets = BalanceService.computeNetBalances(randomLedger(seed));
-      expect(MoneyUtils.sum([...nets.values()]), `seed ${seed}`).toBe(0);
+      expect(sumKobo([...nets.values()]), `seed ${seed}`).toBe(0);
     }
   });
 });

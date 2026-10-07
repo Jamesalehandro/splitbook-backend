@@ -4,9 +4,13 @@ import { ExpenseModel, type Expense, type ExpenseDocument } from '../models/expe
 import type { GroupDocument, GroupMember } from '../models/group.model';
 import type { UserDocument } from '../models/user.model';
 import { ApiError } from '../utils/error';
-import { PaginationUtils, type Paginated } from '../utils/pagination';
-import { StringUtils } from '../utils/string';
-import { ValidationUtils } from '../utils/validation';
+import {
+  buildPaginationMeta,
+  getSkip,
+  type Paginated,
+} from '../utils/pagination';
+import { escapeRegex } from '../utils/string';
+import { toFieldErrors } from '../utils/validation';
 import {
   ExpenseSchema,
   type CreateExpenseInput,
@@ -203,7 +207,7 @@ export class ExpenseService {
     const filter: FilterQuery<Expense> = { group: group._id, isDeleted: false };
 
     if (query.search) {
-      filter.description = { $regex: StringUtils.escapeRegex(query.search), $options: 'i' };
+      filter.description = { $regex: escapeRegex(query.search), $options: 'i' };
     }
     if (query.category) filter.category = query.category;
     if (query.paidBy) filter.paidBy = query.paidBy;
@@ -220,7 +224,7 @@ export class ExpenseService {
     const [items, total] = await Promise.all([
       ExpenseModel.find(filter)
         .sort({ date: -1, createdAt: -1 })
-        .skip(PaginationUtils.skip(query))
+        .skip(getSkip(query))
         .limit(query.limit)
         .populate(ExpenseService.populate),
       ExpenseModel.countDocuments(filter),
@@ -228,7 +232,7 @@ export class ExpenseService {
 
     return {
       items,
-      meta: PaginationUtils.buildMeta({ page: query.page, limit: query.limit, total }),
+      meta: buildPaginationMeta({ page: query.page, limit: query.limit, total }),
     };
   }
 
@@ -287,7 +291,7 @@ export class ExpenseService {
     if (!parsed.success) {
       throw ApiError.badRequest({
         message: 'Validation failed',
-        errors: ValidationUtils.toFieldErrors(parsed.error),
+        errors: toFieldErrors(parsed.error),
       });
     }
 

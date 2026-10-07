@@ -1,12 +1,12 @@
 import type { Request, RequestHandler } from 'express';
 
-import { AuthMiddleware } from '../middleware/authenticate';
+import { requireSession, requireUser } from '../middleware/authenticate';
 import { AuthService, type AuthResult } from '../services/auth.service';
 import {
   SessionService,
   type SessionContext,
 } from '../services/session.service';
-import { ResponseUtils } from '../utils/response';
+import { created, noContent, success } from '../utils/response';
 import type { SessionParams } from '../validators/auth.validator';
 
 function getSessionContext(req: Request): SessionContext {
@@ -30,7 +30,7 @@ export const register: RequestHandler = async (req, res) => {
     context: getSessionContext(req),
   });
 
-  ResponseUtils.created({
+  created({
     res,
     message: 'Account created successfully',
     data: tokenPayload(result),
@@ -44,7 +44,7 @@ export const login: RequestHandler = async (req, res) => {
     context: getSessionContext(req),
   });
 
-  ResponseUtils.success({
+  success({
     res,
     message: 'Logged in successfully',
     data: tokenPayload(result),
@@ -53,17 +53,17 @@ export const login: RequestHandler = async (req, res) => {
 
 /** POST /api/v1/auth/logout — ends the session that made the request. */
 export const logout: RequestHandler = async (req, res) => {
-  const session = AuthMiddleware.requireSession(req);
+  const session = requireSession(req);
   await SessionService.revoke(session.jti);
-  ResponseUtils.noContent({ res });
+  noContent({ res });
 };
 
 /** GET /api/v1/auth/me */
 export const me: RequestHandler = (req, res) => {
-  const user = AuthMiddleware.requireUser(req);
-  const session = AuthMiddleware.requireSession(req);
+  const user = requireUser(req);
+  const session = requireSession(req);
 
-  ResponseUtils.success({
+  success({
     res,
     data: {
       user,
@@ -79,11 +79,11 @@ export const me: RequestHandler = (req, res) => {
 
 /** GET /api/v1/auth/sessions — every device currently logged in. */
 export const listSessions: RequestHandler = async (req, res) => {
-  const user = AuthMiddleware.requireUser(req);
-  const current = AuthMiddleware.requireSession(req);
+  const user = requireUser(req);
+  const current = requireSession(req);
   const sessions = await SessionService.listActive(user._id);
 
-  ResponseUtils.success({
+  success({
     res,
     data: {
       sessions: sessions.map((item) => ({
@@ -98,17 +98,17 @@ export const listSessions: RequestHandler = async (req, res) => {
 
 /** DELETE /api/v1/auth/sessions/:sessionId — log out one device. */
 export const revokeSession: RequestHandler = async (req, res) => {
-  const user = AuthMiddleware.requireUser(req);
+  const user = requireUser(req);
   const { sessionId } = req.params as unknown as SessionParams;
 
   await SessionService.revokeById({ userId: user._id, sessionId });
-  ResponseUtils.noContent({ res });
+  noContent({ res });
 };
 
 /** POST /api/v1/auth/change-password */
 export const changePassword: RequestHandler = async (req, res) => {
-  const user = AuthMiddleware.requireUser(req);
-  const session = AuthMiddleware.requireSession(req);
+  const user = requireUser(req);
+  const session = requireSession(req);
 
   const revokedSessions = await AuthService.changePassword({
     user,
@@ -116,7 +116,7 @@ export const changePassword: RequestHandler = async (req, res) => {
     input: req.body,
   });
 
-  ResponseUtils.success({
+  success({
     res,
     data: { revokedSessions },
     message: 'Password changed. Other devices have been logged out.',

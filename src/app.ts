@@ -5,9 +5,9 @@ import swaggerUi from 'swagger-ui-express';
 
 import { config } from './config';
 import { openApiDocument } from './docs/openapi';
-import { ErrorMiddleware } from './middleware/errorHandler';
-import { LoggingMiddleware } from './middleware/requestLogger';
-import { SanitizeMiddleware } from './middleware/sanitize';
+import { handleError, notFound } from './middleware/errorHandler';
+import { requestLogger } from './middleware/requestLogger';
+import { sanitizeMongo } from './middleware/sanitize';
 import routes from './routes/index';
 
 export function createApp(): Express {
@@ -30,9 +30,9 @@ export function createApp(): Express {
     }),
   );
   app.use(express.json({ limit: '10kb' }));
-  app.use(SanitizeMiddleware.mongo);
+  app.use(sanitizeMongo);
 
-  app.use(LoggingMiddleware.requestLogger);
+  app.use(requestLogger);
 
   app.use(
     '/api/docs',
@@ -43,9 +43,9 @@ export function createApp(): Express {
 
   app.use('/api/v1', routes);
 
-  app.use(ErrorMiddleware.notFound);
+  app.use(notFound);
 
-  app.use(ErrorMiddleware.handle);
+  app.use(handleError);
 
   return app;
 }

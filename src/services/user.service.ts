@@ -5,7 +5,7 @@ import { GroupModel } from '../models/group.model';
 import { SettlementModel } from '../models/settlement.model';
 import { UserModel, type UserDocument } from '../models/user.model';
 import { ApiError } from '../utils/error';
-import { MoneyUtils } from '../utils/money';
+import { sumKobo } from '../utils/money';
 import type { UpdateMeInput } from '../validators/user.validator';
 
 import { BalanceService } from './balance.service';
@@ -95,8 +95,8 @@ export class UserService {
       net: nets[index]!.get(me) ?? 0,
     }));
 
-    const youAreOwed = MoneyUtils.sum(groupNets.filter((g) => g.net > 0).map((g) => g.net));
-    const youOwe = MoneyUtils.sum(groupNets.filter((g) => g.net < 0).map((g) => -g.net));
+    const youAreOwed = sumKobo(groupNets.filter((g) => g.net > 0).map((g) => g.net));
+    const youOwe = sumKobo(groupNets.filter((g) => g.net < 0).map((g) => -g.net));
 
     return {
       youOwe,

@@ -20,18 +20,20 @@ export interface Paginated<T> {
  *
  * `page` is 1-based, because that is what a person reads on screen.
  */
-export class PaginationUtils {
-  /** Page 3 of 20 per page skips the first 40 documents. */
-  static skip({ page, limit }: PageParams): number {
-    return (page - 1) * limit;
-  }
+/** Page 3 of 20 per page skips the first 40 documents. */
+export function getSkip({ page, limit }: PageParams): number {
+  return (page - 1) * limit;
+}
 
-  static buildMeta({ page, limit, total }: BuildMetaParams): PaginationMeta {
-    return {
-      page,
-      limit,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    };
-  }
+export function buildPaginationMeta({
+  page,
+  limit,
+  total,
+}: BuildMetaParams): PaginationMeta {
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
+  };
 }

@@ -8,8 +8,12 @@ import {
 } from '../models/group.model';
 import { UserModel, type UserDocument } from '../models/user.model';
 import { ApiError } from '../utils/error';
-import { PaginationUtils, type Paginated } from '../utils/pagination';
-import { StringUtils } from '../utils/string';
+import {
+  buildPaginationMeta,
+  getSkip,
+  type Paginated,
+} from '../utils/pagination';
+import { escapeRegex } from '../utils/string';
 import type {
   AddMemberInput,
   CreateGroupInput,
@@ -70,7 +74,7 @@ export interface FindMemberParams {
 /**
  * Groups and membership.
  *
- * Access control does not happen here — `GroupAccessMiddleware` has already
+ * Access control does not happen here — the membership middleware has already
  * loaded the group and proved the caller is a member (or admin) before any of
  * these run. What lives here are the rules about MONEY and membership: nobody
  * leaves owing or owed, and a group is only deleted once it is square.
@@ -98,14 +102,14 @@ export class GroupService {
       'members.user': user._id,
       isDeleted: false,
       ...(query.search
-        ? { name: { $regex: StringUtils.escapeRegex(query.search), $options: 'i' } }
+        ? { name: { $regex: escapeRegex(query.search), $options: 'i' } }
         : {}),
     };
 
     const [groups, total] = await Promise.all([
       GroupModel.find(filter)
         .sort({ updatedAt: -1 })
-        .skip(PaginationUtils.skip(query))
+        .skip(getSkip(query))
         .limit(query.limit),
       GroupModel.countDocuments(filter),
     ]);
@@ -116,7 +120,7 @@ export class GroupService {
         memberCount: group.members.length,
         myRole: GroupService.findMember({ group, userId: user._id })?.role ?? 'member',
       })),
-      meta: PaginationUtils.buildMeta({ page: query.page, limit: query.limit, total }),
+      meta: buildPaginationMeta({ page: query.page, limit: query.limit, total }),
     };
   }
 

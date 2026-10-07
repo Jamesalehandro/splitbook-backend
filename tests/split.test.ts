@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { SplitService } from '../src/services/split.service';
 import { ApiError } from '../src/utils/error';
-import { MoneyUtils } from '../src/utils/money';
+import { sumKobo } from '../src/utils/money';
 
 const A = 'a'.repeat(24);
 const B = 'b'.repeat(24);
@@ -48,7 +48,7 @@ describe('SplitService', () => {
       for (let total = 1; total <= 2_000; total += 7) {
         for (let parts = 1; parts <= 9; parts += 1) {
           const amounts = SplitService.divideEvenly({ total, parts });
-          expect(MoneyUtils.sum(amounts)).toBe(total);
+          expect(sumKobo(amounts)).toBe(total);
           expect(
             Math.max(...amounts) - Math.min(...amounts),
           ).toBeLessThanOrEqual(1);
@@ -170,7 +170,7 @@ describe('SplitService', () => {
             ],
           },
         });
-        expect(MoneyUtils.sum(shares.map((share) => share.amount))).toBe(
+        expect(sumKobo(shares.map((share) => share.amount))).toBe(
           amount,
         );
       }

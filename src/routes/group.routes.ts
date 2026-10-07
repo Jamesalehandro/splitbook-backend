@@ -10,9 +10,9 @@ import {
   removeMember,
   update,
 } from '../controllers/group.controller';
-import { AuthMiddleware } from '../middleware/authenticate';
-import { GroupAccessMiddleware } from '../middleware/groupAccess';
-import { ValidationMiddleware } from '../middleware/validate';
+import { authenticate } from '../middleware/authenticate';
+import { requireAdmin, requireMember } from '../middleware/groupAccess';
+import { validate } from '../middleware/validate';
 import { GroupSchema } from '../validators/group.validator';
 
 import expenseRoutes from './expense.routes';
@@ -20,23 +20,23 @@ import settlementRoutes from './settlement.routes';
 
 const router = Router();
 
-router.use(AuthMiddleware.authenticate);
+router.use(authenticate);
 
 router.post(
   '/',
-  ValidationMiddleware.validate({ schema: GroupSchema.create }),
+  validate({ schema: GroupSchema.create }),
   create,
 );
 
 router.get(
   '/',
-  ValidationMiddleware.validate({ schema: GroupSchema.list, part: 'query' }),
+  validate({ schema: GroupSchema.list, part: 'query' }),
   list,
 );
 
 const inGroup = [
-  ValidationMiddleware.validate({ schema: GroupSchema.params, part: 'params' }),
-  GroupAccessMiddleware.requireMember,
+  validate({ schema: GroupSchema.params, part: 'params' }),
+  requireMember,
 ];
 
 router.get('/:groupId', ...inGroup, getOne);
@@ -44,33 +44,33 @@ router.get('/:groupId', ...inGroup, getOne);
 router.patch(
   '/:groupId',
   ...inGroup,
-  GroupAccessMiddleware.requireAdmin,
-  ValidationMiddleware.validate({ schema: GroupSchema.update }),
+  requireAdmin,
+  validate({ schema: GroupSchema.update }),
   update,
 );
 
 router.delete(
   '/:groupId',
   ...inGroup,
-  GroupAccessMiddleware.requireAdmin,
+  requireAdmin,
   remove,
 );
 
 router.post(
   '/:groupId/members',
   ...inGroup,
-  GroupAccessMiddleware.requireAdmin,
-  ValidationMiddleware.validate({ schema: GroupSchema.addMember }),
+  requireAdmin,
+  validate({ schema: GroupSchema.addMember }),
   addMember,
 );
 
 router.delete(
   '/:groupId/members/:userId',
-  ValidationMiddleware.validate({
+  validate({
     schema: GroupSchema.memberParams,
     part: 'params',
   }),
-  GroupAccessMiddleware.requireMember,
+  requireMember,
   removeMember,
 );
 

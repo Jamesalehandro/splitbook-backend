@@ -15,34 +15,32 @@ import type { RequestHandler } from 'express';
  * query parser never builds nested objects, so `?email[$ne]=x` arrives as a
  * harmless literal key.
  */
-export class SanitizeMiddleware {
-  /** Keys MongoDB would read as an operator (`$gt`) or a nested path (`a.b`). */
-  private static isDangerousKey(key: string): boolean {
-    return key.startsWith('$') || key.includes('.');
-  }
-
-  private static clean(value: unknown): unknown {
-    if (Array.isArray(value)) {
-      return value.map((item) => SanitizeMiddleware.clean(item));
-    }
-
-    if (value !== null && typeof value === 'object') {
-      const out: Record<string, unknown> = {};
-      for (const [key, inner] of Object.entries(value)) {
-        if (!SanitizeMiddleware.isDangerousKey(key)) {
-          out[key] = SanitizeMiddleware.clean(inner);
-        }
-      }
-      return out;
-    }
-
-    return value;
-  }
-
-  static mongo: RequestHandler = (req, _res, next) => {
-    if (req.body !== undefined) {
-      req.body = SanitizeMiddleware.clean(req.body);
-    }
-    next();
-  };
+/** Keys MongoDB would read as an operator (`$gt`) or a nested path (`a.b`). */
+function isDangerousKey(key: string): boolean {
+  return key.startsWith('$') || key.includes('.');
 }
+
+function clean(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(clean);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, inner] of Object.entries(value)) {
+      if (!isDangerousKey(key)) {
+        out[key] = clean(inner);
+      }
+    }
+    return out;
+  }
+
+  return value;
+}
+
+export const sanitizeMongo: RequestHandler = (req, _res, next) => {
+  if (req.body !== undefined) {
+    req.body = clean(req.body);
+  }
+  next();
+};

@@ -1,10 +1,10 @@
 import type { RequestHandler } from 'express';
 import mongoose from 'mongoose';
 
-import { ResponseUtils } from '../utils/response';
+import { success } from '../utils/response';
 
 export const health: RequestHandler = (_req, res) => {
-  ResponseUtils.success({
+  success({
     res,
     data: {
       uptime: process.uptime(),

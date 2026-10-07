@@ -9,7 +9,7 @@ import { BalanceService } from '../services/balance.service';
 import { ExpenseService } from '../services/expense.service';
 import { GroupService } from '../services/group.service';
 import { SettlementService } from '../services/settlement.service';
-import { MoneyUtils } from '../utils/money';
+import { formatKobo } from '../utils/money';
 
 /**
  * `pnpm seed` — three demo users, one group, and a few expenses, for the demo.
@@ -136,11 +136,11 @@ async function seed(): Promise<void> {
   for (const user of DEMO_USERS) console.log(`  ${user.email}`);
 
   console.log(`\n[seed] balances in "${group.name}":`);
-  for (const { user, net } of balances) console.log(`  ${user.name.padEnd(12)} ${MoneyUtils.formatKobo(net)}`);
+  for (const { user, net } of balances) console.log(`  ${user.name.padEnd(12)} ${formatKobo(net)}`);
 
   console.log('\n[seed] settle-up plan:');
   for (const { from, to, amount } of plan) {
-    console.log(`  ${from.name} pays ${to.name} ${MoneyUtils.formatKobo(amount)}`);
+    console.log(`  ${from.name} pays ${to.name} ${formatKobo(amount)}`);
   }
   console.log('');
 }

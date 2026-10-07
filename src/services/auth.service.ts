@@ -1,7 +1,11 @@
 import { UserModel, type UserDocument } from '../models/user.model';
 import { ApiError } from '../utils/error';
-import { JwtUtils } from '../utils/jwt';
-import { PasswordUtils } from '../utils/password';
+import { issueAccessToken } from '../utils/jwt';
+import {
+  burnPasswordTimingBudget,
+  hashPassword,
+  verifyPassword,
+} from '../utils/password';
 import type {
   ChangePasswordInput,
   LoginInput,
@@ -63,7 +67,7 @@ export class AuthService {
     const user = await UserModel.create({
       name: input.name,
       email: input.email,
-      passwordHash: await PasswordUtils.hash(input.password),
+      passwordHash: await hashPassword(input.password),
     });
 
     return AuthService.openSession({ user, context });
@@ -78,11 +82,11 @@ export class AuthService {
     );
 
     if (!user) {
-      await PasswordUtils.burnTimingBudget();
+      await burnPasswordTimingBudget();
       throw ApiError.unauthorized(AuthService.genericLoginFailure);
     }
 
-    const passwordMatches = await PasswordUtils.verify({
+    const passwordMatches = await verifyPassword({
       plain: credentials.password,
       hash: user.passwordHash,
     });
@@ -111,7 +115,7 @@ export class AuthService {
       throw ApiError.unauthorized('Invalid or expired token');
     }
 
-    const matches = await PasswordUtils.verify({
+    const matches = await verifyPassword({
       plain: input.currentPassword,
       hash: withHash.passwordHash,
     });
@@ -127,7 +131,7 @@ export class AuthService {
       });
     }
 
-    withHash.passwordHash = await PasswordUtils.hash(input.newPassword);
+    withHash.passwordHash = await hashPassword(input.newPassword);
     withHash.passwordChangedAt = new Date();
     await withHash.save();
 
@@ -141,9 +145,7 @@ export class AuthService {
     user,
     context,
   }: OpenSessionParams): Promise<AuthResult> {
-    const { token, jti, expiresAt } = JwtUtils.issueAccessToken(
-      user.id as string,
-    );
+    const { token, jti, expiresAt } = issueAccessToken(user.id as string);
 
     await SessionService.create({
       userId: user._id,

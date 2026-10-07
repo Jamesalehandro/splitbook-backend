@@ -1,5 +1,5 @@
 import { ApiError } from '../utils/error';
-import { MoneyUtils } from '../utils/money';
+import { formatKobo, sumKobo } from '../utils/money';
 import type { SplitInput } from '../validators/expense.validator';
 
 // ---------------------------------------------------------------------------
@@ -118,7 +118,7 @@ export class SplitService {
       'shares',
     );
 
-    const sum = MoneyUtils.sum(shares.map((share) => share.amount));
+    const sum = sumKobo(shares.map((share) => share.amount));
     if (sum !== amount) {
       const gap = amount - sum;
       throw ApiError.badRequest({
@@ -128,8 +128,8 @@ export class SplitService {
             field: 'shares',
             message:
               gap > 0
-                ? `shares are ${MoneyUtils.formatKobo(gap)} short of ${MoneyUtils.formatKobo(amount)}`
-                : `shares are ${MoneyUtils.formatKobo(-gap)} over ${MoneyUtils.formatKobo(amount)}`,
+                ? `shares are ${formatKobo(gap)} short of ${formatKobo(amount)}`
+                : `shares are ${formatKobo(-gap)} over ${formatKobo(amount)}`,
           },
         ],
       });
@@ -168,7 +168,7 @@ export class SplitService {
       return bp;
     });
 
-    const totalBp = MoneyUtils.sum(basisPoints);
+    const totalBp = sumKobo(basisPoints);
     if (totalBp !== SplitService.BASIS_POINTS_TOTAL) {
       throw ApiError.badRequest({
         message: 'Percentages must add up to 100',
@@ -181,7 +181,7 @@ export class SplitService {
     const amounts = basisPoints.map((bp) =>
       Math.floor((amount * bp) / SplitService.BASIS_POINTS_TOTAL),
     );
-    let leftover = amount - MoneyUtils.sum(amounts);
+    let leftover = amount - sumKobo(amounts);
 
     // Then hand the leftover out one kobo at a time, in order — the same rule
     // as an equal split.

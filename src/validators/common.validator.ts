@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { MoneyUtils } from '../utils/money';
+import { MAX_AMOUNT_KOBO } from '../utils/money';
 
 export class CommonSchema {
   static objectId = z
@@ -31,7 +31,7 @@ export class CommonSchema {
     .number({ invalid_type_error: 'amount must be a number of kobo' })
     .int('amount must be a whole number of kobo (₦1 = 100 kobo)')
     .min(1, 'amount must be greater than 0')
-    .max(MoneyUtils.MAX_AMOUNT_KOBO, 'amount is too large');
+    .max(MAX_AMOUNT_KOBO, 'amount is too large');
 
   /**
    * A calendar date ("2026-09-20") or a full ISO timestamp.

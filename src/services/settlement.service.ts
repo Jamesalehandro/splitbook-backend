@@ -4,7 +4,11 @@ import type { GroupDocument, GroupMember } from '../models/group.model';
 import { SettlementModel, type SettlementDocument } from '../models/settlement.model';
 import type { UserDocument } from '../models/user.model';
 import { ApiError } from '../utils/error';
-import { PaginationUtils, type Paginated } from '../utils/pagination';
+import {
+  buildPaginationMeta,
+  getSkip,
+  type Paginated,
+} from '../utils/pagination';
 import type {
   CreateSettlementInput,
   ListSettlementsInput,
@@ -92,7 +96,7 @@ export class SettlementService {
     const [items, total] = await Promise.all([
       SettlementModel.find(filter)
         .sort({ date: -1, createdAt: -1 })
-        .skip(PaginationUtils.skip(query))
+        .skip(getSkip(query))
         .limit(query.limit)
         .populate(SettlementService.populate),
       SettlementModel.countDocuments(filter),
@@ -100,7 +104,7 @@ export class SettlementService {
 
     return {
       items,
-      meta: PaginationUtils.buildMeta({ page: query.page, limit: query.limit, total }),
+      meta: buildPaginationMeta({ page: query.page, limit: query.limit, total }),
     };
   }
 
