@@ -21,21 +21,25 @@ const userSchema = new Schema(
       lowercase: true,
       unique: true,
     },
-    passwordHash: { type: String, required: true, select: false },
-
-    passwordChangedAt: { type: Date, default: null },
+    passwordHash: {
+      type: String,
+      required: true,
+      select: false,
+    },
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
     toJSON: {
-      transform(_doc, ret: Record<string, unknown>) {
-        ret['id'] = ret['_id'];
-        delete ret['_id'];
-        delete ret['__v'];
-        // Never serialise credentials, whatever the caller asked for.
-        delete ret['passwordHash'];
-        delete ret['passwordChangedAt'];
-        return ret;
+      transform(_doc, ret) {
+        const { _id, __v, passwordHash, passwordChangedAt, ...rest } = ret;
+        return {
+          id: _id,
+          ...rest,
+        };
       },
     },
   },
