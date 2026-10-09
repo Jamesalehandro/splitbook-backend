@@ -34,7 +34,7 @@ const userSchema = new Schema(
   {
     timestamps: true,
     toJSON: {
-      transform(_doc, ret) {
+      transform(_doc, ret: Record<string, unknown>) {
         const { _id, __v, passwordHash, passwordChangedAt, ...rest } = ret;
         return {
           id: _id,
